@@ -12,8 +12,9 @@ function startBinauralBeats(frequency) {
     oscillator1 = context.createOscillator();
     oscillator2 = context.createOscillator();
 
-    oscillator1.frequency.setValueAtTime(440, context.currentTime);
-    oscillator2.frequency.setValueAtTime(440 + frequency, context.currentTime);
+    let baseFrequency = 440 - frequency / 2; // Adjusting the base frequency based on the slider value
+    oscillator1.frequency.setValueAtTime(baseFrequency, context.currentTime);
+    oscillator2.frequency.setValueAtTime(baseFrequency + Number(frequency), context.currentTime);
 
     oscillator1.connect(panNode1).connect(gainNode).connect(context.destination);
     oscillator2.connect(panNode2).connect(gainNode).connect(context.destination);
@@ -44,6 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
     slider.oninput = () => {
         display.textContent = `Frequency: ${slider.value} Hz`;
         chrome.storage.sync.set({frequency: slider.value});
+        if (oscillator1 && oscillator2) {
+            let baseFrequency = 440 - slider.value / 2;
+            oscillator1.frequency.setValueAtTime(baseFrequency, context.currentTime);
+            oscillator2.frequency.setValueAtTime(baseFrequency + Number(slider.value), context.currentTime);
+        }
     };
 
     volumeSlider.oninput = () => {
