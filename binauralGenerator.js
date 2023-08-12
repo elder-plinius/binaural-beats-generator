@@ -23,8 +23,29 @@ chrome.storage.sync.get(['baseFrequency', 'beatFrequency'], (data) => {
   rightOscillator.frequency.value = baseFrequency + (beatFrequency / 2);
 });
 
-leftOscillator.start();
-rightOscillator.start();
+let isPlaying = false;
+
+function togglePlayPause() {
+  if (isPlaying) {
+    leftOscillator.stop();
+    rightOscillator.stop();
+    isPlaying = false;
+  } else {
+    leftOscillator = context.createOscillator();
+    rightOscillator = context.createOscillator();
+    // ... (set frequencies, connect to panners, etc.)
+    leftOscillator.start();
+    rightOscillator.start();
+    isPlaying = true;
+  }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'togglePlayPause') {
+    togglePlayPause();
+    sendResponse({status: isPlaying ? 'playing' : 'paused'});
+  }
+});
 
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.baseFrequency || changes.beatFrequency) {
