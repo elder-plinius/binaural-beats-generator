@@ -7,52 +7,43 @@ if (typeof AudioContext !== 'undefined') {
   console.error("Web Audio API is not supported in this browser");
 }
 
-
-let leftOscillator = context.createOscillator();
-let rightOscillator = context.createOscillator();
-
-let leftPan = context.createStereoPanner();
-let rightPan = context.createStereoPanner();
-
-leftPan.pan.setValueAtTime(-1, context.currentTime);
-rightPan.pan.setValueAtTime(1, context.currentTime);
-
-leftOscillator.connect(leftPan);
-rightOscillator.connect(rightPan);
-
-leftPan.connect(context.destination);
-rightPan.connect(context.destination);
-
+let oscillator1, oscillator2;
 let isPlaying = false;
 
-function togglePlayPause() {
-  if (isPlaying) {
-    leftOscillator.stop();
-    rightOscillator.stop();
-    isPlaying = false;
-  } else {
-    leftOscillator = context.createOscillator();
-    rightOscillator = context.createOscillator();
-    // ... (set frequencies, connect to panners, etc.)
-    leftOscillator.start();
-    rightOscillator.start();
-    isPlaying = true;
-  }
+function startBinauralBeats(frequency) {
+  oscillator1 = context.createOscillator();
+  oscillator2 = context.createOscillator();
+
+  oscillator1.frequency.setValueAtTime(440, context.currentTime); // 440Hz
+  oscillator2.frequency.setValueAtTime(440 + frequency, context.currentTime); // 440Hz + binaural frequency
+
+  oscillator1.connect(context.destination);
+  oscillator2.connect(context.destination);
+
+  oscillator1.start();
+  oscillator2.start();
+}
+
+function stopBinauralBeats() {
+  if (oscillator1) oscillator1.stop();
+  if (oscillator2) oscillator2.stop();
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'togglePlayPause') {
-    togglePlayPause();
-    sendResponse({status: isPlaying ? 'playing' : 'paused'});
+    if (isPlaying) {
+      stopBinauralBeats();
+      isPlaying = false;
+      sendResponse({status: 'paused'});
+    } else {
+      chrome.storage.sync.get('frequency', (data) => {
+        startBinauralBeats(Number(data.frequency));
+        isPlaying = true;
+        sendResponse({status: 'playing'});
+      });
+    }
+  } else if (message.action === 'resumeAudioContext' && context.state === 'suspended') {
+    context.resume();
   }
 });
 
-chrome.storage.onChanged.addListener((changes) => {
-  if (changes.baseFrequency || changes.beatFrequency) {
-    let baseFrequency = changes.baseFrequency ? changes.baseFrequency.newValue : leftOscillator.frequency.value + rightOscillator.frequency.value / 2;
-    let beatFrequency = changes.beatFrequency ? changes.beatFrequency.newValue : rightOscillator.frequency.value - leftOscillator.frequency.value;
-
-    leftOscillator.frequency.value = baseFrequency - (beatFrequency / 2);
-    rightOscillator.frequency.value = baseFrequency + (beatFrequency / 2);
-  }
-});
