@@ -2,11 +2,13 @@
   "manifest_version": 3,
   "name": "Binaural Beats Generator",
   "version": "1.0",
-  "permissions": ["storage", "tabs", "activeTab"],
+  "description": "Generate binaural beats to complement your music.",
+  "permissions": ["storage", "activeTab"],
+  "background": {
+    "scripts": ["binauralGenerator.js"],
+    "persistent": false
+  },
   "action": {
     "default_popup": "popup.html"
-  },
-  "background": {
-    "service_worker": "background.js"
   }
 }
