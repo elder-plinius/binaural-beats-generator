@@ -1,4 +1,12 @@
-let context = new AudioContext();
+let context;
+if (typeof AudioContext !== 'undefined') {
+  context = new AudioContext();
+} else if (typeof webkitAudioContext !== 'undefined') {
+  context = new webkitAudioContext(); // for older versions of Chrome
+} else {
+  console.error("Web Audio API is not supported in this browser");
+}
+
 
 let leftOscillator = context.createOscillator();
 let rightOscillator = context.createOscillator();
