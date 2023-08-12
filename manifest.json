@@ -5,8 +5,7 @@
   "description": "Generate binaural beats to complement your music.",
   "permissions": ["storage", "activeTab"],
   "background": {
-    "scripts": ["binauralGenerator.js"],
-    "persistent": false
+    "service_worker": "backgroundWorker.js"
   },
   "action": {
     "default_popup": "popup.html"
