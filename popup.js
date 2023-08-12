@@ -1,32 +1,50 @@
+let context = new AudioContext();
+let oscillator1, oscillator2;
+let isPlaying = false;
+
+function startBinauralBeats(frequency) {
+  oscillator1 = context.createOscillator();
+  oscillator2 = context.createOscillator();
+
+  oscillator1.frequency.setValueAtTime(440, context.currentTime);
+  oscillator2.frequency.setValueAtTime(440 + frequency, context.currentTime);
+
+  oscillator1.connect(context.destination);
+  oscillator2.connect(context.destination);
+
+  oscillator1.start();
+  oscillator2.start();
+}
+
+function stopBinauralBeats() {
+  if (oscillator1) oscillator1.stop();
+  if (oscillator2) oscillator2.stop();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   let slider = document.getElementById('frequencySlider');
   let display = document.getElementById('frequencyDisplay');
   let playPauseButton = document.getElementById('togglePlayPause');
 
-  // Load the stored frequency value and set the slider and display accordingly
   chrome.storage.sync.get('frequency', (data) => {
-    slider.value = data.frequency || 440;  // Default to 440Hz if no value is stored
+    slider.value = data.frequency || 440;
     display.textContent = `Frequency: ${slider.value} Hz`;
   });
 
-  // Update the frequency value when the slider is moved
   slider.oninput = () => {
     display.textContent = `Frequency: ${slider.value} Hz`;
     chrome.storage.sync.set({frequency: slider.value});
   };
 
-  // Handle the play/pause button click
   playPauseButton.addEventListener('click', function() {
-    // Send a message to the background script to toggle play/pause
-    chrome.runtime.sendMessage({action: 'togglePlayPause'}, (response) => {
-      if (response && response.status === 'playing') {
-        playPauseButton.textContent = 'Pause';
-      } else {
-        playPauseButton.textContent = 'Play';
-      }
-    });
-
-    // Send a message to resume the AudioContext in the background script
-    chrome.runtime.sendMessage({action: 'resumeAudioContext'});
+    if (isPlaying) {
+      stopBinauralBeats();
+      isPlaying = false;
+      playPauseButton.textContent = 'Play';
+    } else {
+      startBinauralBeats(Number(slider.value));
+      isPlaying = true;
+      playPauseButton.textContent = 'Pause';
+    }
   });
 });
