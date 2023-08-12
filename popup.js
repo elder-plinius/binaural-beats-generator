@@ -14,12 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   playPauseButton.addEventListener('click', function() {
-    // Send a message to the background script to toggle play/pause
     chrome.runtime.sendMessage({action: 'togglePlayPause'}, (response) => {
-      if (response.status === 'playing') {
-        playPauseButton.textContent = 'Pause';
-      } else {
-        playPauseButton.textContent = 'Play';
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError.message);
+        return;
+      }
+      if (response && response.status) {
+        if (response.status === 'playing') {
+          playPauseButton.textContent = 'Pause';
+        } else {
+          playPauseButton.textContent = 'Play';
+        }
       }
     });
   });
