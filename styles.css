@@ -1,0 +1,16 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 10px;
+}
+
+h1 {
+  color: #333;
+}
+
+.slider {
+  width: 100%;
+}
+
+#frequencyDisplay {
+  margin-top: 10px;
+}
