@@ -15,14 +15,6 @@ rightOscillator.connect(rightPan);
 leftPan.connect(context.destination);
 rightPan.connect(context.destination);
 
-chrome.storage.sync.get(['baseFrequency', 'beatFrequency'], (data) => {
-  let baseFrequency = data.baseFrequency || 300;
-  let beatFrequency = data.beatFrequency || 10;
-
-  leftOscillator.frequency.value = baseFrequency - (beatFrequency / 2);
-  rightOscillator.frequency.value = baseFrequency + (beatFrequency / 2);
-});
-
 let isPlaying = false;
 
 function togglePlayPause() {
