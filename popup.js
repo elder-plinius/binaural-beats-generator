@@ -1,4 +1,4 @@
-let context = new AudioContext();
+let context = new (window.AudioContext || window.webkitAudioContext)();
 let oscillator1, oscillator2;
 let isPlaying = false;
 let panNode1 = context.createStereoPanner();
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let volumeDisplay = document.getElementById('volumeDisplay');
 
     chrome.storage.sync.get(['frequency', 'volume'], (data) => {
-        slider.value = data.frequency || 440;
+        slider.value = data.frequency || 10;
         display.textContent = `Frequency: ${slider.value} Hz`;
         volumeSlider.value = data.volume || 0.5;
         volumeDisplay.textContent = `Volume: ${Math.round(volumeSlider.value * 100)}%`;
@@ -53,9 +53,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     playPauseButton.addEventListener('click', function() {
+        if (context.state === 'suspended') {
+            context.resume();
+        }
+
         if (isPlaying) {
             stopBinauralBeats();
             isPlaying = false;
             playPauseButton.textContent = 'Play';
         } else {
-            startBinauralBeats(Number(slider.value
+            startBinauralBeats(Number(slider.value));
+            isPlaying = true;
+            playPauseButton.textContent = 'Pause';
+        }
+    });
+});
