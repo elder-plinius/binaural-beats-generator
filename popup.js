@@ -1,79 +1,64 @@
-let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let oscillatorLeft, oscillatorRight, gainNode;
-let isPlaying = false;
+let audioContext;
+let oscillatorLeft;
+let oscillatorRight;
+let gainNode;
 
-// Initialize the audio components once
-function initAudio() {
+if (!audioContext) {
+    audioContext = new AudioContext();
     oscillatorLeft = audioContext.createOscillator();
     oscillatorRight = audioContext.createOscillator();
     gainNode = audioContext.createGain();
 
-    oscillatorLeft.type = 'sine';
-    oscillatorRight.type = 'sine';
-
     oscillatorLeft.connect(gainNode);
     oscillatorRight.connect(gainNode);
-
-    oscillatorLeft.start();
-    oscillatorRight.start();
+    gainNode.connect(audioContext.destination);
 }
 
-function togglePlayPause() {
-    if (isPlaying) {
-        gainNode.disconnect(audioContext.destination);
-        isPlaying = false;
-    } else {
-        gainNode.connect(audioContext.destination);
-        isPlaying = true;
-    }
-}
-
-function updateFrequencies() {
-    let frequency = parseFloat(document.getElementById('frequencySlider').value);
-    let delta = parseFloat(document.getElementById('deltaSlider').value);
+function updateBinauralBeats(frequency, delta, volume) {
     oscillatorLeft.frequency.setValueAtTime(frequency, audioContext.currentTime);
     oscillatorRight.frequency.setValueAtTime(frequency + delta, audioContext.currentTime);
-}
-
-function updateVolume() {
-    let volume = parseFloat(document.getElementById('volumeSlider').value);
     gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
 }
 
-function randomizeValues() {
-    let randomFrequency = Math.floor(Math.random() * 100) + 1;
-    let randomDelta = Math.floor(Math.random() * 30) + 1;
-
-    document.getElementById('frequencySlider').value = randomFrequency;
-    document.getElementById('deltaSlider').value = randomDelta;
-
-    document.getElementById('frequencyDisplay').textContent = `Frequency: ${randomFrequency} Hz`;
-    document.getElementById('deltaDisplay').textContent = `Delta: ${randomDelta} Hz`;
-
-    updateFrequencies();
-}
-
-// Initialize audio components when the popup is loaded
-initAudio();
-
 document.getElementById('togglePlayPause').addEventListener('click', function() {
-    togglePlayPause();
-    this.textContent = isPlaying ? 'Pause' : 'Play';
+    if (oscillatorLeft && oscillatorRight) {
+        oscillatorLeft.stop();
+        oscillatorRight.stop();
+        oscillatorLeft = null;
+        oscillatorRight = null;
+        this.textContent = 'Play';
+    } else {
+        oscillatorLeft = audioContext.createOscillator();
+        oscillatorRight = audioContext.createOscillator();
+        oscillatorLeft.connect(gainNode);
+        oscillatorRight.connect(gainNode);
+        updateBinauralBeats(
+            parseFloat(document.getElementById('frequencySlider').value),
+            parseFloat(document.getElementById('deltaSlider').value),
+            parseFloat(document.getElementById('volumeSlider').value)
+        );
+        oscillatorLeft.start();
+        oscillatorRight.start();
+        this.textContent = 'Pause';
+    }
 });
 
 document.getElementById('frequencySlider').addEventListener('input', function() {
-    document.getElementById('frequencyDisplay').textContent = `Frequency: ${this.value} Hz`;
-    updateFrequencies();
+    updateBinauralBeats(
+        parseFloat(this.value),
+        parseFloat(document.getElementById('deltaSlider').value),
+        parseFloat(document.getElementById('volumeSlider').value)
+    );
 });
 
 document.getElementById('deltaSlider').addEventListener('input', function() {
-    document.getElementById('deltaDisplay').textContent = `Delta: ${this.value} Hz`;
-    updateFrequencies();
+    updateBinauralBeats(
+        parseFloat(document.getElementById('frequencySlider').value),
+        parseFloat(this.value),
+        parseFloat(document.getElementById('volumeSlider').value)
+    );
 });
 
 document.getElementById('volumeSlider').addEventListener('input', function() {
-    document.getElementById('volumeDisplay').textContent = `Volume: ${Math.round(this.value * 100)}%`;
-    updateVolume();
+    gainNode.gain.setValueAtTime(parseFloat(this.value), audioContext.currentTime);
 });
-
-document.getElementById('randomize').addEventListener('click', randomizeValues);
