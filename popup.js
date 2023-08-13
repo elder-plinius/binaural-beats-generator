@@ -8,13 +8,13 @@ let gainNode = context.createGain();
 panNode1.pan.value = -1; // Left ear
 panNode2.pan.value = 1;  // Right ear
 
-function startBinauralBeats(frequency) {
+function startBinauralBeats(delta) {
     oscillator1 = context.createOscillator();
     oscillator2 = context.createOscillator();
 
-    let baseFrequency = 440 - frequency / 2; // Adjusting the base frequency based on the slider value
+    let baseFrequency = 440; 
     oscillator1.frequency.setValueAtTime(baseFrequency, context.currentTime);
-    oscillator2.frequency.setValueAtTime(baseFrequency + Number(frequency), context.currentTime);
+    oscillator2.frequency.setValueAtTime(baseFrequency + Number(delta), context.currentTime);
 
     oscillator1.connect(panNode1).connect(gainNode).connect(context.destination);
     oscillator2.connect(panNode2).connect(gainNode).connect(context.destination);
@@ -23,32 +23,26 @@ function startBinauralBeats(frequency) {
     oscillator2.start();
 }
 
-function stopBinauralBeats() {
-    if (oscillator1) oscillator1.stop();
-    if (oscillator2) oscillator2.stop();
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-    let slider = document.getElementById('frequencySlider');
-    let display = document.getElementById('frequencyDisplay');
+    let deltaSlider = document.getElementById('deltaSlider');
+    let deltaDisplay = document.getElementById('deltaDisplay');
     let playPauseButton = document.getElementById('togglePlayPause');
     let volumeSlider = document.getElementById('volumeSlider');
     let volumeDisplay = document.getElementById('volumeDisplay');
 
-    chrome.storage.sync.get(['frequency', 'volume'], (data) => {
-        slider.value = data.frequency || 10;
-        display.textContent = `Frequency: ${slider.value} Hz`;
+    chrome.storage.sync.get(['delta', 'volume'], (data) => {
+        deltaSlider.value = data.delta || 10;
+        deltaDisplay.textContent = `Delta: ${deltaSlider.value} Hz`;
         volumeSlider.value = data.volume || 0.5;
         volumeDisplay.textContent = `Volume: ${Math.round(volumeSlider.value * 100)}%`;
     });
 
-    slider.oninput = () => {
-        display.textContent = `Frequency: ${slider.value} Hz`;
-        chrome.storage.sync.set({frequency: slider.value});
+    deltaSlider.oninput = () => {
+        deltaDisplay.textContent = `Delta: ${deltaSlider.value} Hz`;
+        chrome.storage.sync.set({delta: deltaSlider.value});
         if (oscillator1 && oscillator2) {
-            let baseFrequency = 440 - slider.value / 2;
-            oscillator1.frequency.setValueAtTime(baseFrequency, context.currentTime);
-            oscillator2.frequency.setValueAtTime(baseFrequency + Number(slider.value), context.currentTime);
+            oscillator1.frequency.setValueAtTime(440, context.currentTime);
+            oscillator2.frequency.setValueAtTime(440 + Number(deltaSlider.value), context.currentTime);
         }
     };
 
@@ -64,11 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (isPlaying) {
-            stopBinauralBeats();
+            oscillator1.stop();
+            oscillator2.stop();
             isPlaying = false;
             playPauseButton.textContent = 'Play';
         } else {
-            startBinauralBeats(Number(slider.value));
+            startBinauralBeats(Number(deltaSlider.value));
             isPlaying = true;
             playPauseButton.textContent = 'Pause';
         }
