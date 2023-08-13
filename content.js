@@ -1,19 +1,14 @@
-let audioContext;
-let oscillatorLeft;
-let oscillatorRight;
-let gainNode;
+let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let oscillatorLeft, oscillatorRight, gainNode;
 let isPlaying = false;
 
 function startBinauralBeats(frequency, delta, volume) {
-    if (audioContext) {
-        audioContext.close();
-    }
-
-    audioContext = new AudioContext();
-
     oscillatorLeft = audioContext.createOscillator();
     oscillatorRight = audioContext.createOscillator();
     gainNode = audioContext.createGain();
+
+    oscillatorLeft.type = 'sine';
+    oscillatorRight.type = 'sine';
 
     oscillatorLeft.frequency.setValueAtTime(frequency, audioContext.currentTime);
     oscillatorRight.frequency.setValueAtTime(frequency + delta, audioContext.currentTime);
@@ -31,12 +26,8 @@ function startBinauralBeats(frequency, delta, volume) {
 }
 
 function stopBinauralBeats() {
-    if (oscillatorLeft) {
-        oscillatorLeft.stop();
-    }
-    if (oscillatorRight) {
-        oscillatorRight.stop();
-    }
+    oscillatorLeft.stop();
+    oscillatorRight.stop();
     isPlaying = false;
 }
 
@@ -44,10 +35,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'togglePlayPause') {
         if (isPlaying) {
             stopBinauralBeats();
-            sendResponse({ status: 'paused' });
+            sendResponse({status: 'stopped'});
         } else {
             startBinauralBeats(message.frequency, message.delta, message.volume);
-            sendResponse({ status: 'playing' });
+            sendResponse({status: 'playing'});
+        }
+    } else if (message.action === 'updateAudio') {
+        if (isPlaying) {
+            oscillatorLeft.frequency.setValueAtTime(message.frequency, audioContext.currentTime);
+            oscillatorRight.frequency.setValueAtTime(message.frequency + message.delta, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(message.volume, audioContext.currentTime);
         }
     }
 });
