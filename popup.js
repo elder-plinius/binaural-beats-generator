@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.storage.sync.set({volume: volumeSlider.value});
     };
 
-   playPauseButton.addEventListener('click', function() {
+playPauseButton.addEventListener('click', function() {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
         let activeTab = tabs[0];
         chrome.scripting.executeScript({
