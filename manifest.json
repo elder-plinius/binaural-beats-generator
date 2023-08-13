@@ -5,7 +5,8 @@
   "description": "Generate binaural beats to enhance cognitive functions.",
   "permissions": ["storage", "activeTab"],
   "background": {
-    "service_worker": "background.js"
+    "page": "background.html",
+    "persistent": true
   },
   "action": {
     "default_popup": "popup.html"
