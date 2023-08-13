@@ -3,14 +3,16 @@
   "name": "Binaural Beats Generator",
   "version": "1.0",
   "description": "Generate binaural beats to enhance cognitive functions.",
-  "permissions": ["storage", "activeTab"],
-  "background": {
-    "page": "background.html",
-    "persistent": true
-  },
+  "permissions": ["storage", "activeTab", "tabs", "scripting"],
   "action": {
     "default_popup": "popup.html"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self';"
   }
