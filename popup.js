@@ -1,42 +1,51 @@
-let frequencySlider = document.getElementById('frequencySlider');
-let deltaSlider = document.getElementById('deltaSlider');
-let volumeSlider = document.getElementById('volumeSlider');
-let playPauseButton = document.getElementById('togglePlayPause');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binaural Beats Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+        }
 
-// Update frequency display
-frequencySlider.addEventListener('input', function() {
-    document.getElementById('frequencyDisplay').textContent = `Frequency: ${frequencySlider.value} Hz`;
-});
+        #frequencySlider {
+            width: 100%;
+        }
 
-// Update delta display
-deltaSlider.addEventListener('input', function() {
-    document.getElementById('deltaDisplay').textContent = `Delta: ${deltaSlider.value} Hz`;
-});
+        .brainwave-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
 
-// Update volume display
-volumeSlider.addEventListener('input', function() {
-    document.getElementById('volumeDisplay').textContent = `Volume: ${Math.round(volumeSlider.value * 100)}%`;
-});
-
-playPauseButton.addEventListener('click', function() {
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-        let activeTab = tabs[0];
-        chrome.scripting.executeScript({
-            target: {tabId: activeTab.id},
-            files: ['content.js']
-        }, () => {
-            chrome.tabs.sendMessage(activeTab.id, {
-                action: 'togglePlayPause',
-                frequency: Number(frequencySlider.value),
-                delta: Number(deltaSlider.value),
-                volume: Number(volumeSlider.value)
-            }, (response) => {
-                if (response && response.status === 'playing') {
-                    playPauseButton.textContent = 'Pause';
-                } else {
-                    playPauseButton.textContent = 'Play';
-                }
-            });
-        });
-    });
-});
+        .brainwave-labels span {
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <label for="frequencySlider">Base Frequency (Hz):</label>
+    <input type="range" id="frequencySlider" min="1" max="100" value="440">
+    <span id="frequencyDisplay">Frequency: 440 Hz</span>
+    <div class="brainwave-labels">
+        <span>Delta<br>1-4 Hz<br>Deep Sleep</span>
+        <span>Theta<br>4-8 Hz<br>Meditation</span>
+        <span>Alpha<br>8-14 Hz<br>Relaxation</span>
+        <span>Beta<br>14-30 Hz<br>Focus</span>
+        <span>Gamma<br>30-100 Hz<br>Insight</span>
+    </div>
+    <br>
+    <label for="deltaSlider">Delta (Left/Right Difference):</label>
+    <input type="range" id="deltaSlider" min="1" max="30" value="10">
+    <span id="deltaDisplay">Delta: 10 Hz</span>
+    <br>
+    <label for="volumeSlider">Volume:</label>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+    <span id="volumeDisplay">Volume: 50%</span>
+    <br>
+    <button id="togglePlayPause">Play</button>
+    <script src="popup.js"></script>
+</body>
+</html>
