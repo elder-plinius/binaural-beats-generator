@@ -2,7 +2,8 @@ let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let oscillatorLeft, oscillatorRight, gainNode;
 let isPlaying = false;
 
-function startBinauralBeats() {
+// Initialize the audio components once
+function initAudio() {
     oscillatorLeft = audioContext.createOscillator();
     oscillatorRight = audioContext.createOscillator();
     gainNode = audioContext.createGain();
@@ -10,23 +11,21 @@ function startBinauralBeats() {
     oscillatorLeft.type = 'sine';
     oscillatorRight.type = 'sine';
 
-    updateFrequencies();
-    updateVolume();
-
     oscillatorLeft.connect(gainNode);
     oscillatorRight.connect(gainNode);
-    gainNode.connect(audioContext.destination);
 
     oscillatorLeft.start();
     oscillatorRight.start();
-
-    isPlaying = true;
 }
 
-function stopBinauralBeats() {
-    oscillatorLeft.stop();
-    oscillatorRight.stop();
-    isPlaying = false;
+function togglePlayPause() {
+    if (isPlaying) {
+        gainNode.disconnect(audioContext.destination);
+        isPlaying = false;
+    } else {
+        gainNode.connect(audioContext.destination);
+        isPlaying = true;
+    }
 }
 
 function updateFrequencies() {
@@ -51,40 +50,30 @@ function randomizeValues() {
     document.getElementById('frequencyDisplay').textContent = `Frequency: ${randomFrequency} Hz`;
     document.getElementById('deltaDisplay').textContent = `Delta: ${randomDelta} Hz`;
 
-    if (isPlaying) {
-        updateFrequencies();
-    }
+    updateFrequencies();
 }
 
+// Initialize audio components when the popup is loaded
+initAudio();
+
 document.getElementById('togglePlayPause').addEventListener('click', function() {
-    if (isPlaying) {
-        stopBinauralBeats();
-        this.textContent = 'Play';
-    } else {
-        startBinauralBeats();
-        this.textContent = 'Pause';
-    }
+    togglePlayPause();
+    this.textContent = isPlaying ? 'Pause' : 'Play';
 });
 
 document.getElementById('frequencySlider').addEventListener('input', function() {
     document.getElementById('frequencyDisplay').textContent = `Frequency: ${this.value} Hz`;
-    if (isPlaying) {
-        updateFrequencies();
-    }
+    updateFrequencies();
 });
 
 document.getElementById('deltaSlider').addEventListener('input', function() {
     document.getElementById('deltaDisplay').textContent = `Delta: ${this.value} Hz`;
-    if (isPlaying) {
-        updateFrequencies();
-    }
+    updateFrequencies();
 });
 
 document.getElementById('volumeSlider').addEventListener('input', function() {
     document.getElementById('volumeDisplay').textContent = `Volume: ${Math.round(this.value * 100)}%`;
-    if (isPlaying) {
-        updateVolume();
-    }
+    updateVolume();
 });
 
 document.getElementById('randomize').addEventListener('click', randomizeValues);
