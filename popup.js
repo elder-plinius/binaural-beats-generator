@@ -2,12 +2,7 @@ let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let oscillatorLeft, oscillatorRight, gainNode;
 let isPlaying = false;
 
-let frequencySlider = document.getElementById('frequencySlider');
-let deltaSlider = document.getElementById('deltaSlider');
-let volumeSlider = document.getElementById('volumeSlider');
-let playPauseButton = document.getElementById('togglePlayPause');
-
-function startBinauralBeats(frequency, delta, volume) {
+function startBinauralBeats() {
     oscillatorLeft = audioContext.createOscillator();
     oscillatorRight = audioContext.createOscillator();
     gainNode = audioContext.createGain();
@@ -15,10 +10,8 @@ function startBinauralBeats(frequency, delta, volume) {
     oscillatorLeft.type = 'sine';
     oscillatorRight.type = 'sine';
 
-    oscillatorLeft.frequency.setValueAtTime(frequency, audioContext.currentTime);
-    oscillatorRight.frequency.setValueAtTime(frequency + delta, audioContext.currentTime);
-
-    gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+    updateFrequencies();
+    updateVolume();
 
     oscillatorLeft.connect(gainNode);
     oscillatorRight.connect(gainNode);
@@ -36,34 +29,45 @@ function stopBinauralBeats() {
     isPlaying = false;
 }
 
-playPauseButton.addEventListener('click', function() {
+function updateFrequencies() {
+    let frequency = parseFloat(document.getElementById('frequencySlider').value);
+    let delta = parseFloat(document.getElementById('deltaSlider').value);
+    oscillatorLeft.frequency.setValueAtTime(frequency, audioContext.currentTime);
+    oscillatorRight.frequency.setValueAtTime(frequency + delta, audioContext.currentTime);
+}
+
+function updateVolume() {
+    let volume = parseFloat(document.getElementById('volumeSlider').value);
+    gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+}
+
+document.getElementById('togglePlayPause').addEventListener('click', function() {
     if (isPlaying) {
         stopBinauralBeats();
-        playPauseButton.textContent = 'Play';
+        this.textContent = 'Play';
     } else {
-        startBinauralBeats(Number(frequencySlider.value), Number(deltaSlider.value), Number(volumeSlider.value));
-        playPauseButton.textContent = 'Pause';
+        startBinauralBeats();
+        this.textContent = 'Pause';
     }
 });
 
-frequencySlider.addEventListener('input', function() {
-    document.getElementById('frequencyDisplay').textContent = `Frequency: ${frequencySlider.value} Hz`;
+document.getElementById('frequencySlider').addEventListener('input', function() {
+    document.getElementById('frequencyDisplay').textContent = `Frequency: ${this.value} Hz`;
     if (isPlaying) {
-        oscillatorLeft.frequency.setValueAtTime(Number(frequencySlider.value), audioContext.currentTime);
-        oscillatorRight.frequency.setValueAtTime(Number(frequencySlider.value) + Number(deltaSlider.value), audioContext.currentTime);
+        updateFrequencies();
     }
 });
 
-deltaSlider.addEventListener('input', function() {
-    document.getElementById('deltaDisplay').textContent = `Delta: ${deltaSlider.value} Hz`;
+document.getElementById('deltaSlider').addEventListener('input', function() {
+    document.getElementById('deltaDisplay').textContent = `Delta: ${this.value} Hz`;
     if (isPlaying) {
-        oscillatorRight.frequency.setValueAtTime(Number(frequencySlider.value) + Number(deltaSlider.value), audioContext.currentTime);
+        updateFrequencies();
     }
 });
 
-volumeSlider.addEventListener('input', function() {
-    document.getElementById('volumeDisplay').textContent = `Volume: ${Math.round(volumeSlider.value * 100)}%`;
+document.getElementById('volumeSlider').addEventListener('input', function() {
+    document.getElementById('volumeDisplay').textContent = `Volume: ${Math.round(this.value * 100)}%`;
     if (isPlaying) {
-        gainNode.gain.setValueAtTime(Number(volumeSlider.value), audioContext.currentTime);
+        updateVolume();
     }
 });
