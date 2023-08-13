@@ -5,10 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Binaural Beats Generator</title>
     <style>
-        /* Add your CSS styling here */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+        }
+
+        #frequencySlider {
+            width: 100%;
+        }
+
+        .brainwave-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        .brainwave-labels span {
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
+    <label for="frequencySlider">Base Frequency (Hz):</label>
+    <input type="range" id="frequencySlider" min="1" max="100" value="440">
+    <span id="frequencyDisplay">Frequency: 440 Hz</span>
+    <div class="brainwave-labels">
+        <span>Delta<br>1-4 Hz<br>Deep Sleep</span>
+        <span>Theta<br>4-8 Hz<br>Meditation</span>
+        <span>Alpha<br>8-14 Hz<br>Relaxation</span>
+        <span>Beta<br>14-30 Hz<br>Focus</span>
+        <span>Gamma<br>30-100 Hz<br>Insight</span>
+    </div>
+    <br>
     <label for="deltaSlider">Delta (Hz Difference):</label>
     <input type="range" id="deltaSlider" min="1" max="30" value="10">
     <span id="deltaDisplay">Delta: 10 Hz</span>
