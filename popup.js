@@ -3,6 +3,21 @@ let deltaSlider = document.getElementById('deltaSlider');
 let volumeSlider = document.getElementById('volumeSlider');
 let playPauseButton = document.getElementById('togglePlayPause');
 
+// Update frequency display
+frequencySlider.addEventListener('input', function() {
+    document.getElementById('frequencyDisplay').textContent = `Frequency: ${frequencySlider.value} Hz`;
+});
+
+// Update delta display
+deltaSlider.addEventListener('input', function() {
+    document.getElementById('deltaDisplay').textContent = `Delta: ${deltaSlider.value} Hz`;
+});
+
+// Update volume display
+volumeSlider.addEventListener('input', function() {
+    document.getElementById('volumeDisplay').textContent = `Volume: ${Math.round(volumeSlider.value * 100)}%`;
+});
+
 playPauseButton.addEventListener('click', function() {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
         let activeTab = tabs[0];
