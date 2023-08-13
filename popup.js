@@ -1,71 +1,63 @@
-let context = new (window.AudioContext || window.webkitAudioContext)();
-let oscillator1, oscillator2;
-let isPlaying = false;
-let panNode1 = context.createStereoPanner();
-let panNode2 = context.createStereoPanner();
-let gainNode = context.createGain();
-
-panNode1.pan.value = -1; // Left ear
-panNode2.pan.value = 1;  // Right ear
-
-function startBinauralBeats(delta) {
-    oscillator1 = context.createOscillator();
-    oscillator2 = context.createOscillator();
-
-    let baseFrequency = 440; 
-    oscillator1.frequency.setValueAtTime(baseFrequency, context.currentTime);
-    oscillator2.frequency.setValueAtTime(baseFrequency + Number(delta), context.currentTime);
-
-    oscillator1.connect(panNode1).connect(gainNode).connect(context.destination);
-    oscillator2.connect(panNode2).connect(gainNode).connect(context.destination);
-
-    oscillator1.start();
-    oscillator2.start();
-}
-
 document.addEventListener('DOMContentLoaded', () => {
+    let frequencySlider = document.getElementById('frequencySlider');
+    let frequencyDisplay = document.getElementById('frequencyDisplay');
     let deltaSlider = document.getElementById('deltaSlider');
     let deltaDisplay = document.getElementById('deltaDisplay');
-    let playPauseButton = document.getElementById('togglePlayPause');
     let volumeSlider = document.getElementById('volumeSlider');
     let volumeDisplay = document.getElementById('volumeDisplay');
+    let playPauseButton = document.getElementById('togglePlayPause');
 
-    chrome.storage.sync.get(['delta', 'volume'], (data) => {
+    chrome.storage.sync.get(['frequency', 'delta', 'volume'], (data) => {
+        frequencySlider.value = data.frequency || 440;
+        frequencyDisplay.textContent = `Frequency: ${frequencySlider.value} Hz`;
         deltaSlider.value = data.delta || 10;
         deltaDisplay.textContent = `Delta: ${deltaSlider.value} Hz`;
         volumeSlider.value = data.volume || 0.5;
         volumeDisplay.textContent = `Volume: ${Math.round(volumeSlider.value * 100)}%`;
     });
 
+    frequencySlider.oninput = () => {
+        let frequencyValue = frequencySlider.value;
+        let brainwaveCategory;
+
+        if (frequencyValue <= 4) {
+            brainwaveCategory = "Delta (Deep Sleep)";
+        } else if (frequencyValue <= 8) {
+            brainwaveCategory = "Theta (Meditation)";
+        } else if (frequencyValue <= 14) {
+            brainwaveCategory = "Alpha (Relaxation)";
+        } else if (frequencyValue <= 30) {
+            brainwaveCategory = "Beta (Focus)";
+        } else {
+            brainwaveCategory = "Gamma (Insight)";
+        }
+
+        frequencyDisplay.textContent = `Frequency: ${frequencyValue} Hz - ${brainwaveCategory}`;
+        chrome.storage.sync.set({frequency: frequencyValue});
+    };
+
     deltaSlider.oninput = () => {
         deltaDisplay.textContent = `Delta: ${deltaSlider.value} Hz`;
         chrome.storage.sync.set({delta: deltaSlider.value});
-        if (oscillator1 && oscillator2) {
-            oscillator1.frequency.setValueAtTime(440, context.currentTime);
-            oscillator2.frequency.setValueAtTime(440 + Number(deltaSlider.value), context.currentTime);
-        }
     };
 
     volumeSlider.oninput = () => {
         volumeDisplay.textContent = `Volume: ${Math.round(volumeSlider.value * 100)}%`;
-        gainNode.gain.value = volumeSlider.value;
         chrome.storage.sync.set({volume: volumeSlider.value});
     };
 
     playPauseButton.addEventListener('click', function() {
-        if (context.state === 'suspended') {
-            context.resume();
-        }
-
-        if (isPlaying) {
-            oscillator1.stop();
-            oscillator2.stop();
-            isPlaying = false;
-            playPauseButton.textContent = 'Play';
-        } else {
-            startBinauralBeats(Number(deltaSlider.value));
-            isPlaying = true;
-            playPauseButton.textContent = 'Pause';
-        }
+        chrome.runtime.sendMessage({
+            action: 'togglePlayPause',
+            frequency: Number(frequencySlider.value),
+            delta: Number(deltaSlider.value),
+            volume: Number(volumeSlider.value)
+        }, (response) => {
+            if (response.status === 'playing') {
+                playPauseButton.textContent = 'Pause';
+            } else {
+                playPauseButton.textContent = 'Play';
+            }
+        });
     });
 });
