@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 delta: Number(deltaSlider.value),
                 volume: Number(volumeSlider.value)
             }, (response) => {
-                if (response.status === 'playing') {
+                if (response && response.status === 'playing') {
                     playPauseButton.textContent = 'Pause';
                 } else {
                     playPauseButton.textContent = 'Play';
