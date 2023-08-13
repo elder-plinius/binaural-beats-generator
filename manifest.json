@@ -2,8 +2,11 @@
   "manifest_version": 3,
   "name": "Binaural Beats Generator",
   "version": "1.0",
-  "description": "A Chrome extension to generate binaural beats.",
-  "permissions": ["storage"],
+  "description": "Generate binaural beats to enhance cognitive functions.",
+  "permissions": ["storage", "activeTab"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html"
   },
