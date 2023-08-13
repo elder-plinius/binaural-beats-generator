@@ -3,7 +3,7 @@
   "name": "Binaural Beats Generator",
   "version": "1.0",
   "description": "Generate binaural beats to enhance focus and relaxation.",
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage"],
   "action": {
     "default_popup": "popup.html"
   }
