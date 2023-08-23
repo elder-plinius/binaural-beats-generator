@@ -1,17 +1,21 @@
-let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let oscillatorLeft, oscillatorRight, gainNode;
-let isPlaying = false;
+let audioContext = null;
+let oscillatorLeft = null;
+let oscillatorRight = null;
+let gainNode = null;
 
-function startBinauralBeats() {
+function startBinauralBeats(frequency = 440, delta = 10) {
+  if (audioContext) {
+    stopBinauralBeats();
+  }
+
+  audioContext = new AudioContext();
+
   oscillatorLeft = audioContext.createOscillator();
   oscillatorRight = audioContext.createOscillator();
   gainNode = audioContext.createGain();
 
-  oscillatorLeft.type = 'sine';
-  oscillatorRight.type = 'sine';
-
-  updateFrequencies();
-  updateVolume();
+  oscillatorLeft.frequency.value = frequency;
+  oscillatorRight.frequency.value = frequency + delta;
 
   oscillatorLeft.connect(gainNode);
   oscillatorRight.connect(gainNode);
@@ -19,38 +23,38 @@ function startBinauralBeats() {
 
   oscillatorLeft.start();
   oscillatorRight.start();
-
-  isPlaying = true;
 }
 
 function stopBinauralBeats() {
-  oscillatorLeft.stop();
-  oscillatorRight.stop();
-  isPlaying = false;
+  if (oscillatorLeft) oscillatorLeft.stop();
+  if (oscillatorRight) oscillatorRight.stop();
+  if (audioContext) audioContext.close();
+
+  oscillatorLeft = null;
+  oscillatorRight = null;
+  audioContext = null;
 }
 
-function updateFrequencies(frequency, delta) {
-  oscillatorLeft.frequency.setValueAtTime(frequency, audioContext.currentTime);
-  oscillatorRight.frequency.setValueAtTime(frequency + delta, audioContext.currentTime);
-}
-
-function updateVolume(volume) {
-  gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
-}
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  switch (message.action) {
-    case 'start':
-      startBinauralBeats();
-      break;
-    case 'stop':
-      stopBinauralBeats();
-      break;
-    case 'updateFrequencies':
-      updateFrequencies(message.frequency, message.delta);
-      break;
-    case 'updateVolume':
-      updateVolume(message.volume);
-      break;
-  }
+chrome.runtime.onConnect.addListener((port) => {
+  port.onMessage.addListener((message) => {
+    switch (message.action) {
+      case 'start':
+        startBinauralBeats();
+        break;
+      case 'stop':
+        stopBinauralBeats();
+        break;
+      case 'updateFrequencies':
+        if (oscillatorLeft && oscillatorRight) {
+          oscillatorLeft.frequency.value = message.frequency;
+          oscillatorRight.frequency.value = message.frequency + message.delta;
+        }
+        break;
+      case 'updateVolume':
+        if (gainNode) {
+          gainNode.gain.value = message.volume;
+        }
+        break;
+    }
+  });
 });
